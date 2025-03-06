@@ -14,6 +14,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      konva:
+        specifier: ^9.3.18
+        version: 9.3.18
       lucide-vue-next:
         specifier: ^0.476.0
         version: 0.476.0(vue@3.5.13(typescript@5.7.3))
@@ -29,6 +32,12 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.7.3)
+      vue-konva:
+        specifier: ^3.2.0
+        version: 3.2.0(konva@9.3.18)(vue@3.5.13(typescript@5.7.3))
+      vue-router:
+        specifier: '4'
+        version: 4.5.0(vue@3.5.13(typescript@5.7.3))
     devDependencies:
       '@types/node':
         specifier: ^22.13.5
@@ -433,6 +442,9 @@ packages:
   '@vue/compiler-vue2@2.7.16':
     resolution: {integrity: sha512-qYC3Psj9S/mfu9uVi5WvNZIzq+xnXMhOwbTFKKDD7b1lhpnn71jXSFdTQ+WsIEk0ONCd7VV2IMm7ONl6tbQ86A==}
 
+  '@vue/devtools-api@6.6.4':
+    resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
+
   '@vue/language-core@2.2.4':
     resolution: {integrity: sha512-eGGdw7eWUwdIn9Fy/irJ7uavCGfgemuHQABgJ/hU1UgZFnbTg9VWeXvHQdhY+2SPQZWJqWXvRWIg67t4iWEa+Q==}
     peerDependencies:
@@ -697,6 +709,9 @@ packages:
   jiti@1.21.7:
     resolution: {integrity: sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==}
     hasBin: true
+
+  konva@9.3.18:
+    resolution: {integrity: sha512-ad5h0Y9phUrinBrKXyIISbURRHQO7Rx5cz7mAEEfdVCs45gDqRD8Y0I0nJRk8S6iqEbiRE87CEZu5GVSnU8oow==}
 
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
@@ -1011,6 +1026,18 @@ packages:
     peerDependenciesMeta:
       '@vue/composition-api':
         optional: true
+
+  vue-konva@3.2.0:
+    resolution: {integrity: sha512-n1KcOJDvTsgBRy/9HNAEm+5mNgvIxatImIjeuietH5Qt3yHbIK8mp1sP6TQL+a3Pne45UiMO9W+Gwrq1cjptkw==}
+    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
+    peerDependencies:
+      konva: '>7'
+      vue: ^3
+
+  vue-router@4.5.0:
+    resolution: {integrity: sha512-HDuk+PuH5monfNuY+ct49mNmkCRK4xJAV9Ts4z9UFc4rzdDnxQLyCMGGc8pKhZhHTVzfanpNwB/lwqevcBwI4w==}
+    peerDependencies:
+      vue: ^3.2.0
 
   vue-tsc@2.2.4:
     resolution: {integrity: sha512-3EVHlxtpMXcb5bCaK7QDFTbEkMusDfVk0HVRrkv5hEb+Clpu9a96lKUXJAeD/akRlkoA4H8MCHgBDN19S6FnzA==}
@@ -1333,6 +1360,8 @@ snapshots:
       de-indent: 1.0.2
       he: 1.2.0
 
+  '@vue/devtools-api@6.6.4': {}
+
   '@vue/language-core@2.2.4(typescript@5.7.3)':
     dependencies:
       '@volar/language-core': 2.4.11
@@ -1614,6 +1643,8 @@ snapshots:
       '@pkgjs/parseargs': 0.11.0
 
   jiti@1.21.7: {}
+
+  konva@9.3.18: {}
 
   lilconfig@3.1.3: {}
 
@@ -1904,6 +1935,16 @@ snapshots:
 
   vue-demi@0.14.10(vue@3.5.13(typescript@5.7.3)):
     dependencies:
+      vue: 3.5.13(typescript@5.7.3)
+
+  vue-konva@3.2.0(konva@9.3.18)(vue@3.5.13(typescript@5.7.3)):
+    dependencies:
+      konva: 9.3.18
+      vue: 3.5.13(typescript@5.7.3)
+
+  vue-router@4.5.0(vue@3.5.13(typescript@5.7.3)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.7.3)
 
   vue-tsc@2.2.4(typescript@5.7.3):
