@@ -2,33 +2,47 @@
   <div ref="panel" class="command-panel" :style="{ top: `${top}px`, left: `${left}px` }">
     <h3 class="panel-title" @mousedown="startDragging">Controls</h3>
     <Button @click="emit('add-circle')">Add Circle</Button>
-    <Button :variant="isMoveMode ? 'secondary' : 'default'" @click="toggleMoveMode" class="mt-2">
-      {{ isMoveMode ? 'Disable Move' : 'Enable Move' }}
+    <Button :variant="store.isMoveMode ? 'secondary' : 'default'" @click="toggleMoveMode" class="mt-2">
+      {{ store.isMoveMode ? 'Disable Move' : 'Enable Move' }}
     </Button>
     <Button @click="emit('zoom-in')" class="mt-2">Zoom In</Button>
     <Button @click="emit('zoom-out')" class="mt-2">Zoom Out</Button>
     <Button @click="emit('center-canvas')" class="mt-2">Center Canvas</Button>
+    <Button @click="emit('split-grid')" class="mt-2">Split Grid</Button>
+    <Button @click="toggleGrid" class="mt-2">
+      {{ gridVisible ? 'Hide Grid' : 'Show Grid' }}
+    </Button>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue';
+import { useCanvasStore } from '@/stores/canvasStore';
 import { Button } from '@/components/ui/button';
 
-// Initial position (top-right corner, below header)
+// Pinia store
+const store = useCanvasStore();
+
+// Local state for UI
 const top = ref();
 const left = ref();
 const panel = ref(null);
+const gridVisible = ref(true); // Local UI state, synced with toggle
 
-// Mode states (local for UI, will sync with store)
-const isMoveMode = ref(false);
-
-const emit = defineEmits(['add-circle', 'set-move-mode', 'zoom-in', 'zoom-out', 'center-canvas']);
+const emit = defineEmits([
+  'add-circle',
+  'set-move-mode',
+  'zoom-in',
+  'zoom-out',
+  'center-canvas',
+  'split-grid',
+  'toggle-grid',
+]);
 
 // Toggle functions
 const toggleMoveMode = () => {
-  isMoveMode.value = !isMoveMode.value;
-  emit('set-move-mode', isMoveMode.value);
+  store.setMoveMode(!store.isMoveMode);
+  emit('set-move-mode', store.isMoveMode);
 };
 
 onMounted(() => {
@@ -40,9 +54,14 @@ onMounted(() => {
   }
 });
 
+// Sync grid visibility with button text
+const toggleGrid = () => {
+  gridVisible.value = !gridVisible.value;
+  emit('toggle-grid');
+};
+
 const startDragging = (e) => {
   e.preventDefault();
-
   const panelEl = panel.value;
   const panelWidth = panelEl.offsetWidth;
   const panelHeight = panelEl.offsetHeight;
@@ -55,10 +74,8 @@ const startDragging = (e) => {
   const moveAt = (pageX, pageY) => {
     let newLeft = pageX - shiftX;
     let newTop = pageY - shiftY;
-
     newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - panelWidth));
     newTop = Math.max(0, Math.min(newTop, canvasHeight - panelHeight));
-
     left.value = newLeft;
     top.value = newTop;
   };
@@ -68,13 +85,9 @@ const startDragging = (e) => {
   };
 
   document.addEventListener('mousemove', onMouseMove);
-
-  const stopDragging = () => {
+  document.addEventListener('mouseup', () => {
     document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', stopDragging);
-  };
-
-  document.addEventListener('mouseup', stopDragging);
+  }, { once: true });
 };
 </script>
 

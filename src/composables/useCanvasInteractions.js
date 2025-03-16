@@ -1,9 +1,8 @@
 import { useCanvasStore } from '@/stores/canvasStore';
 
-export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
+export function useCanvasInteractions(stageRef, width, height, updateMinimap, drawGrid) {
   const store = useCanvasStore();
 
-  // Function to generate random color
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -13,26 +12,28 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
     return color;
   };
 
-  // Function to add a circle
   const addCircle = () => {
+    const safeWidth = Number(width.value) && !isNaN(Number(width.value)) ? Number(width.value) : 800;
+    const safeHeight = Number(height.value) && !isNaN(Number(height.value)) ? Number(height.value) : 600;
+
     const newCircle = {
       id: Math.round(Math.random() * 10000).toString(),
-      x: Math.random() * width.value,
-      y: Math.random() * height.value,
-      radius: Math.random() * 50 + 10,
+      x: Math.random() * safeWidth,
+      y: Math.random() * safeHeight,
+      radius: 20,
       color: getRandomColor(),
     };
+
     store.addCircle(newCircle);
     updateMinimap();
   };
 
-  // Zoom functions
   const zoomIn = () => {
     const stageInstance = stageRef.value.getStage();
     const scaleFactor = 1.2;
     const centerX = width.value / 2;
     const centerY = height.value / 2;
-    const newScale = Math.min(stageInstance.scaleX() * scaleFactor, 5); // Max zoom limit
+    const newScale = Math.min(stageInstance.scaleX() * scaleFactor, 5);
     stageInstance.scale({ x: newScale, y: newScale });
     stageInstance.position({
       x: centerX - (centerX - stageInstance.x()) * scaleFactor,
@@ -41,6 +42,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
     clampPosition(stageInstance);
     stageInstance.batchDraw();
     updateMinimap();
+    drawGrid(); // Redraw grid after zoom
   };
 
   const zoomOut = () => {
@@ -48,7 +50,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
     const scaleFactor = 1.2;
     const centerX = width.value / 2;
     const centerY = height.value / 2;
-    const newScale = Math.max(stageInstance.scaleX() / scaleFactor, 1); // Min zoom limit
+    const newScale = Math.max(stageInstance.scaleX() / scaleFactor, 1);
     stageInstance.scale({ x: newScale, y: newScale });
     stageInstance.position({
       x: centerX - (centerX - stageInstance.x()) / scaleFactor,
@@ -57,9 +59,9 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
     clampPosition(stageInstance);
     stageInstance.batchDraw();
     updateMinimap();
+    drawGrid(); // Redraw grid after zoom
   };
 
-  // Panning (move canvas)
   const handleMouseDown = (e) => {
     if (store.isMoveMode) {
       store.isDragging = true;
@@ -83,6 +85,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
       store.lastPos = pointerPos;
       stageInstance.batchDraw();
       updateMinimap();
+      drawGrid(); // Redraw grid after pan
     }
   };
 
@@ -90,7 +93,6 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
     store.isDragging = false;
   };
 
-  // Clamp position to container bounds
   const clampPosition = (stageInstance) => {
     const scale = stageInstance.scaleX();
     const scaledWidth = width.value * scale;
@@ -104,13 +106,13 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap) {
     stageInstance.position({ x, y });
   };
 
-  // Center canvas
   const centerCanvas = () => {
     const stageInstance = stageRef.value.getStage();
     stageInstance.position({ x: 0, y: 0 });
     stageInstance.scale({ x: 1, y: 1 });
     stageInstance.batchDraw();
     updateMinimap();
+    drawGrid(); // Redraw grid after centering
   };
 
   return {

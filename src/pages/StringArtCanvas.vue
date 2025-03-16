@@ -4,6 +4,7 @@
     <div class="drawing-canvas">
       <v-stage ref="stage" :config="canvas.configKonva.value" @mousedown="interactions.handleMouseDown"
         @mousemove="interactions.handleMouseMove" @mouseup="interactions.handleMouseUp">
+        <v-layer ref="gridLayer"></v-layer> <!-- Grid layer -->
         <v-layer ref="layer">
           <v-circle v-for="circle in store.circles" :key="circle.id" :config="{
             x: circle.x,
@@ -41,20 +42,24 @@
 
     <!-- Control panel component -->
     <control-panel @add-circle="interactions.addCircle" @set-move-mode="store.setMoveMode"
-      @zoom-in="interactions.zoomIn" @zoom-out="interactions.zoomOut" @center-canvas="interactions.centerCanvas" />
+      @zoom-in="interactions.zoomIn" @zoom-out="interactions.zoomOut" @center-canvas="interactions.centerCanvas"
+      @split-grid="grid.splitGrid" @toggle-grid="grid.toggleGrid" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'; // Ensure ref is imported
+import { ref, onMounted, watch } from 'vue';
+import Konva from 'konva'; // Import Konva for direct use in grid
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useCanvas } from '@/composables/useCanvas';
 import { useMinimap } from '@/composables/useMinimap';
 import { useCanvasInteractions } from '@/composables/useCanvasInteractions';
+import { useGrid } from '@/composables/useGrid';
 import ControlPanel from '@/components/ControlPanel.vue';
 
-// Refs for Konva stages
+// Refs for Konva stages and layers
 const stage = ref(null);
+const gridLayer = ref(null);
 const minimapStage = ref(null);
 
 // Pinia store
@@ -63,11 +68,26 @@ const store = useCanvasStore();
 // Composables
 const canvas = useCanvas();
 const minimap = useMinimap(canvas.width, canvas.height, store.circles, stage, minimapStage);
-const interactions = useCanvasInteractions(stage, canvas.width, canvas.height, minimap.updateMinimap);
+const grid = useGrid(stage, canvas.width, canvas.height);
+const interactions = useCanvasInteractions(stage, canvas.width, canvas.height, minimap.updateMinimap, () =>
+  grid.drawGrid(gridLayer.value?.getNode())
+);
 
 onMounted(() => {
   minimap.updateMinimap();
+  grid.drawGrid(gridLayer.value.getNode()); // Initial grid draw
 });
+
+// Redraw grid on size, visibility, or position changes
+watch(
+  [canvas.width, canvas.height, grid.gridSize, grid.isGridVisible, store.lastPos],
+  () => {
+    if (gridLayer.value) {
+      grid.drawGrid(gridLayer.value.getNode());
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
