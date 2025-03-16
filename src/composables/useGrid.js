@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 
 export function useGrid(stageRef, width, height) {
   // Grid state
@@ -55,6 +55,11 @@ export function useGrid(stageRef, width, height) {
     gridSize.value /= 2; // e.g., 1cm -> 0.5cm
   };
 
+  // Enlarge grid size (invert split)
+  const enlargeGrid = () => {
+    gridSize.value *= 2; // e.g., 0.5cm -> 1cm
+  };
+
   // Toggle grid visibility
   const toggleGrid = () => {
     isGridVisible.value = !isGridVisible.value;
@@ -65,6 +70,7 @@ export function useGrid(stageRef, width, height) {
     isGridVisible,
     drawGrid,
     splitGrid,
+    enlargeGrid,
     toggleGrid,
   };
 }

@@ -9,6 +9,7 @@
     <Button @click="emit('zoom-out')" class="mt-2">Zoom Out</Button>
     <Button @click="emit('center-canvas')" class="mt-2">Center Canvas</Button>
     <Button @click="emit('split-grid')" class="mt-2">Split Grid</Button>
+    <Button @click="emit('enlarge-grid')" class="mt-2">Enlarge Grid</Button>
     <Button @click="toggleGrid" class="mt-2">
       {{ gridVisible ? 'Hide Grid' : 'Show Grid' }}
     </Button>
@@ -36,6 +37,7 @@ const emit = defineEmits([
   'zoom-out',
   'center-canvas',
   'split-grid',
+  'enlarge-grid',
   'toggle-grid',
 ]);
 

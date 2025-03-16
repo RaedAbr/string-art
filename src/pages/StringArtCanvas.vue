@@ -43,7 +43,7 @@
     <!-- Control panel component -->
     <control-panel @add-circle="interactions.addCircle" @set-move-mode="store.setMoveMode"
       @zoom-in="interactions.zoomIn" @zoom-out="interactions.zoomOut" @center-canvas="interactions.centerCanvas"
-      @split-grid="grid.splitGrid" @toggle-grid="grid.toggleGrid" />
+      @split-grid="grid.splitGrid" @toggle-grid="grid.toggleGrid" @enlarge-grid="grid.enlargeGrid" />
   </div>
 </template>
 
