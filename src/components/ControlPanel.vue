@@ -20,7 +20,7 @@ const top = ref();
 const left = ref();
 const panel = ref(null);
 
-// Mode states
+// Mode states (local for UI, will sync with store)
 const isMoveMode = ref(false);
 
 const emit = defineEmits(['add-circle', 'set-move-mode', 'zoom-in', 'zoom-out', 'center-canvas']);

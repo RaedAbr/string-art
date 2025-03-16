@@ -31,7 +31,6 @@ const route = useRoute();
 }
 
 .header {
-  /* padding: 16px; */
   height: 120px;
   background-color: #1f2937;
   /* Dark gray */
