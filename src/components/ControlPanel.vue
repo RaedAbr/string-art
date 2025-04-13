@@ -1,53 +1,53 @@
 <template>
-  <div ref="panel" class="command-panel" :style="{ top: `${top}px`, left: `${left}px` }">
-    <h3 class="panel-title" @mousedown="startDragging">Controls</h3>
-    <!-- Current Mode Display -->
-    <p class="mode-display mt-2">
-      Current Mode: {{ store.isDrawingMode ? 'Drawing' : store.isMoveMode ? 'Moving' : 'Default' }}
-    </p>
-    <Button @click="emit('add-circle')">Add Circle</Button>
-    <Button :variant="store.isMoveMode ? 'secondary' : 'default'" @click="toggleMoveMode" class="mt-2">
-      {{ store.isMoveMode ? 'Disable Move' : 'Enable Move' }}
-    </Button>
-    <Button :variant="store.isDrawingMode ? 'secondary' : 'default'" @click="toggleDrawingMode" class="mt-2">
-      {{ store.isDrawingMode ? 'Disable Drawing' : 'Enable Drawing' }}
-    </Button>
-    <Button @click="emit('zoom-in')" class="mt-2">Zoom In</Button>
-    <Button @click="emit('zoom-out')" class="mt-2">Zoom Out</Button>
-    <Button @click="emit('center-canvas')" class="mt-2">Center Canvas</Button>
-    <Button @click="emit('split-grid')" class="mt-2">Split Grid</Button>
-    <Button @click="emit('enlarge-grid')" class="mt-2">Enlarge Grid</Button>
-    <Button @click="emit('toggle-grid')" class="mt-2">
-      {{ gridVisible ? 'Hide Grid' : 'Show Grid' }}
-    </Button>
+  <div>
+    <div ref="panel" class="command-panel" :style="{ top: `${top}px`, left: `${left}px` }">
+      <h3 class="panel-title" @mousedown="startDragging">Controls</h3>
+      <p class="mode-display mt-2">
+        Current Mode: {{ store.isDrawingMode ? 'Drawing' : store.isMoveMode ? 'Moving' : 'Default' }}
+      </p>
+      <Button @click="emit('add-circle')">Add Circle</Button>
+      <Button :variant="store.isMoveMode ? 'secondary' : 'default'" @click="toggleMoveMode" class="mt-2">
+        {{ store.isMoveMode ? 'Disable Move' : 'Enable Move' }}
+      </Button>
+      <Button :variant="store.isDrawingMode ? 'secondary' : 'default'" @click="toggleDrawingMode" class="mt-2">
+        {{ store.isDrawingMode ? 'Disable Drawing' : 'Enable Drawing' }}
+      </Button>
+      <Button @click="emit('zoom-in')" class="mt-2">Zoom In</Button>
+      <Button @click="emit('zoom-out')" class="mt-2">Zoom Out</Button>
+      <Button @click="emit('center-canvas')" class="mt-2">Center Canvas</Button>
+      <Button @click="emit('split-grid')" class="mt-2">Split Grid</Button>
+      <Button @click="emit('enlarge-grid')" class="mt-2">Enlarge Grid</Button>
+      <Button @click="emit('toggle-grid')" class="mt-2">
+        {{ gridVisible ? 'Hide Grid' : 'Show Grid' }}
+      </Button>
 
-    <!-- Secondary Control Panel for Drawing Mode -->
-    <div v-if="store.isDrawingMode" class="secondary-panel mt-2">
-      <h4>Drawing Options</h4>
-      <ToggleGroup v-model="drawingOption" type="multiple" variant="outline" class="mt-2">
-        <ToggleGroupItem value="segment">Segment</ToggleGroupItem>
-        <ToggleGroupItem value="option2">Option 2</ToggleGroupItem>
-        <ToggleGroupItem value="option3">Option 3</ToggleGroupItem>
-      </ToggleGroup>
+      <div v-if="store.isDrawingMode" class="secondary-panel mt-2">
+        <h4>Drawing Options</h4>
+        <ToggleGroup v-model="drawingOption" type="single" class="mt-2">
+          <ToggleGroupItem value="segment">Segment</ToggleGroupItem>
+          <ToggleGroupItem value="option2" disabled>Option 2</ToggleGroupItem>
+          <ToggleGroupItem value="option3" disabled>Option 3</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
     </div>
+    <SegmentProperties v-if="store.selectedSegment" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineEmits } from 'vue';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import SegmentProperties from '@/components/SegmentProperties.vue';
 
-// Pinia store
 const store = useCanvasStore();
 
-// Local state for UI
 const top = ref();
 const left = ref();
 const panel = ref(null);
 const gridVisible = ref(true);
-const drawingOption = ref('segment'); // Default to Segment
+const drawingOption = ref('segment');
 
 const emit = defineEmits([
   'add-circle',
@@ -61,7 +61,6 @@ const emit = defineEmits([
   'set-drawing-mode',
 ]);
 
-// Toggle functions
 const toggleMoveMode = () => {
   store.setMoveMode(!store.isMoveMode);
   emit('set-move-mode', store.isMoveMode);
@@ -72,7 +71,6 @@ const toggleDrawingMode = () => {
   emit('set-drawing-mode', store.isDrawingMode);
 };
 
-// Sync grid visibility with button text
 const toggleGrid = () => {
   gridVisible.value = !gridVisible.value;
   emit('toggle-grid');
