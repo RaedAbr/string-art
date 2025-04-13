@@ -42,7 +42,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap, dr
     clampPosition(stageInstance);
     stageInstance.batchDraw();
     updateMinimap();
-    drawGrid(); // Redraw grid after zoom
+    drawGrid();
   };
 
   const zoomOut = () => {
@@ -59,7 +59,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap, dr
     clampPosition(stageInstance);
     stageInstance.batchDraw();
     updateMinimap();
-    drawGrid(); // Redraw grid after zoom
+    drawGrid();
   };
 
   const handleMouseDown = (e) => {
@@ -85,7 +85,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap, dr
       store.lastPos = pointerPos;
       stageInstance.batchDraw();
       updateMinimap();
-      drawGrid(); // Redraw grid after pan
+      drawGrid();
     }
   };
 
@@ -112,7 +112,7 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap, dr
     stageInstance.scale({ x: 1, y: 1 });
     stageInstance.batchDraw();
     updateMinimap();
-    drawGrid(); // Redraw grid after centering
+    drawGrid();
   };
 
   return {

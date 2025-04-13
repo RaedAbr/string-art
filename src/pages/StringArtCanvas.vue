@@ -3,9 +3,10 @@
     <!-- Main Canvas -->
     <div class="drawing-canvas">
       <v-stage ref="stage" :config="canvas.configKonva.value" @mousedown="interactions.handleMouseDown"
-        @mousemove="interactions.handleMouseMove" @mouseup="interactions.handleMouseUp">
-        <v-layer ref="gridLayer"></v-layer> <!-- Grid layer -->
+        @mousemove="handleMouseMove" @mouseup="interactions.handleMouseUp" @click="drawing.handleCanvasClick">
+        <v-layer ref="gridLayer"></v-layer>
         <v-layer ref="layer">
+          <!-- Circles -->
           <v-circle v-for="circle in store.circles" :key="circle.id" :config="{
             x: circle.x,
             y: circle.y,
@@ -13,6 +14,26 @@
             fill: circle.color,
             opacity: 0.8,
           }"></v-circle>
+          <!-- Points -->
+          <v-circle v-for="point in store.points" :key="point.id" :config="{
+            x: point.x,
+            y: point.y,
+            radius: 3,
+            fill: 'black',
+          }"></v-circle>
+          <!-- Segments -->
+          <v-line v-for="segment in store.segments" :key="segment.id" :config="{
+            points: [segment.start.x, segment.start.y, segment.end.x, segment.end.y],
+            stroke: 'blue',
+            strokeWidth: 2,
+          }"></v-line>
+          <!-- Preview Segment -->
+          <v-line v-if="previewSegment" :config="{
+            points: [previewSegment.start.x, previewSegment.start.y, previewSegment.end.x, previewSegment.end.y],
+            stroke: 'blue',
+            strokeWidth: 2,
+            dash: [5, 5],
+          }"></v-line>
         </v-layer>
       </v-stage>
     </div>
@@ -35,7 +56,24 @@
             fill: circle.color,
             opacity: 0.8,
           }"></v-circle>
-          <v-rect :config="minimap.viewportRect.value" />
+          <!-- Minimap Points -->
+          <v-circle v-for="point in store.points" :key="point.id" :config="{
+            x: point.x * minimap.minimapScale.value,
+            y: point.y * minimap.minimapScale.value,
+            radius: 3 * minimap.minimapScale.value,
+            fill: 'black',
+          }"></v-circle>
+          <!-- Minimap Segments -->
+          <v-line v-for="segment in store.segments" :key="segment.id" :config="{
+            points: [
+              segment.start.x * minimap.minimapScale.value,
+              segment.start.y * minimap.minimapScale.value,
+              segment.end.x * minimap.minimapScale.value,
+              segment.end.y * minimap.minimapScale.value,
+            ],
+            stroke: 'blue',
+            strokeWidth: 2 * minimap.minimapScale.value,
+          }"></v-line>
         </v-layer>
       </v-stage>
     </div>
@@ -43,18 +81,19 @@
     <!-- Control panel component -->
     <control-panel @add-circle="interactions.addCircle" @set-move-mode="store.setMoveMode"
       @zoom-in="interactions.zoomIn" @zoom-out="interactions.zoomOut" @center-canvas="interactions.centerCanvas"
-      @split-grid="grid.splitGrid" @toggle-grid="grid.toggleGrid" @enlarge-grid="grid.enlargeGrid" />
+      @split-grid="grid.splitGrid" @enlarge-grid="grid.enlargeGrid" @toggle-grid="grid.toggleGrid" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import Konva from 'konva'; // Import Konva for direct use in grid
+import Konva from 'konva';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { useCanvas } from '@/composables/useCanvas';
 import { useMinimap } from '@/composables/useMinimap';
 import { useCanvasInteractions } from '@/composables/useCanvasInteractions';
 import { useGrid } from '@/composables/useGrid';
+import { useDrawing } from '@/composables/useDrawing';
 import ControlPanel from '@/components/ControlPanel.vue';
 
 // Refs for Konva stages and layers
@@ -72,6 +111,22 @@ const grid = useGrid(stage, canvas.width, canvas.height);
 const interactions = useCanvasInteractions(stage, canvas.width, canvas.height, minimap.updateMinimap, () =>
   grid.drawGrid(gridLayer.value?.getNode())
 );
+const drawing = useDrawing(stage, grid.gridSize, canvas.width, canvas.height);
+
+// Preview segment state
+const previewSegment = ref(null);
+
+// Handle mouse move for preview segment
+const handleMouseMove = (e) => {
+  if (store.isDrawingMode && store.activePoint && stage.value) {
+    const stageInstance = stage.value.getStage();
+    const pointerPos = stageInstance.getPointerPosition();
+    previewSegment.value = drawing.getPreviewSegment(pointerPos);
+  } else {
+    previewSegment.value = null;
+  }
+  interactions.handleMouseMove(e); // Preserve move mode behavior
+};
 
 onMounted(() => {
   minimap.updateMinimap();
@@ -88,6 +143,13 @@ watch(
   },
   { deep: true }
 );
+
+// Update minimap on points/segments changes
+watch([store.points, store.segments], () => {
+  if (minimapStage.value) {
+    minimapStage.value.getStage().batchDraw();
+  }
+});
 </script>
 
 <style scoped>
@@ -95,12 +157,10 @@ watch(
   position: relative;
   width: 100%;
   height: calc(100vh - 120px);
-  /* Adjust based on your header height */
 }
 
 .drawing-canvas :v-deep .konvajs-content canvas {
   border: 2px solid #000000 !important;
-  /* Force visibility with !important if needed */
 }
 
 .minimap-container {
