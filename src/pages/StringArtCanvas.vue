@@ -58,6 +58,7 @@
             height: minimap.minimapConfig.value.height,
             fill: '#f0f0f0',
           }" />
+          <v-rect :config="minimap.viewportRect.value" />
           <v-circle v-for="circle in store.circles" :key="circle.id" :config="{
             x: circle.x * minimap.minimapScale.value,
             y: circle.y * minimap.minimapScale.value,
