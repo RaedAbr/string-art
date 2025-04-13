@@ -19,18 +19,18 @@
             x: point.x,
             y: point.y,
             radius: 3,
-            fill: 'black',
+            fill: COLORS.POINT_FILL,
           }"></v-circle>
           <!-- Segments -->
           <v-line v-for="segment in store.segments" :key="segment.id" :config="{
             points: [segment.start.x, segment.start.y, segment.end.x, segment.end.y],
-            stroke: 'blue',
+            stroke: COLORS.SEGMENT_STROKE,
             strokeWidth: 2,
           }"></v-line>
           <!-- Preview Segment -->
           <v-line v-if="previewSegment" :config="{
             points: [previewSegment.start.x, previewSegment.start.y, previewSegment.end.x, previewSegment.end.y],
-            stroke: 'blue',
+            stroke: COLORS.PREVIEW_SEGMENT_STROKE,
             strokeWidth: 2,
             dash: [5, 5],
           }"></v-line>
@@ -61,7 +61,7 @@
             x: point.x * minimap.minimapScale.value,
             y: point.y * minimap.minimapScale.value,
             radius: 3 * minimap.minimapScale.value,
-            fill: 'black',
+            fill: COLORS.POINT_FILL,
           }"></v-circle>
           <!-- Minimap Segments -->
           <v-line v-for="segment in store.segments" :key="segment.id" :config="{
@@ -71,7 +71,7 @@
               segment.end.x * minimap.minimapScale.value,
               segment.end.y * minimap.minimapScale.value,
             ],
-            stroke: 'blue',
+            stroke: COLORS.SEGMENT_STROKE,
             strokeWidth: 2 * minimap.minimapScale.value,
           }"></v-line>
         </v-layer>
@@ -94,6 +94,7 @@ import { useMinimap } from '@/composables/useMinimap';
 import { useCanvasInteractions } from '@/composables/useCanvasInteractions';
 import { useGrid } from '@/composables/useGrid';
 import { useDrawing } from '@/composables/useDrawing';
+import { COLORS } from '@/constants/colors'; // Import colors
 import ControlPanel from '@/components/ControlPanel.vue';
 
 // Refs for Konva stages and layers

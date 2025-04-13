@@ -1,15 +1,14 @@
 import { ref } from 'vue';
+import { COLORS } from '@/constants/colors';
 
 export function useGrid(stageRef, width, height) {
-  // Grid state
-  const gridSize = ref(37.795275591); // 1cm in pixels (assuming 96 DPI, 1cm = ~37.8px)
+  const gridSize = ref(37.795275591);
   const isGridVisible = ref(true);
 
-  // Function to draw the grid
   const drawGrid = (layer) => {
     if (!layer || !stageRef.value) return;
 
-    layer.destroyChildren(); // Clear previous grid lines
+    layer.destroyChildren();
     layer.clear();
 
     if (!isGridVisible.value) {
@@ -18,30 +17,28 @@ export function useGrid(stageRef, width, height) {
     }
 
     const stage = stageRef.value.getStage();
-    const scale = stage.scaleX(); // Current zoom scale
+    const scale = stage.scaleX();
     const pos = stage.position();
-    const gridStep = gridSize.value; // Grid size in pixels, not scaled
-    const strokeWidth = 1 / scale; // Constant thickness in screen space
+    const gridStep = gridSize.value;
+    const strokeWidth = 1 / scale;
 
-    // Vertical lines
     const startX = Math.floor(pos.x / gridStep) * gridStep;
     for (let x = startX; x < width.value * scale + pos.x; x += gridStep) {
       layer.add(
         new Konva.Line({
           points: [x, pos.y, x, height.value * scale + pos.y],
-          stroke: '#ccc',
+          stroke: COLORS.GRID_STROKE,
           strokeWidth: strokeWidth,
         })
       );
     }
 
-    // Horizontal lines
     const startY = Math.floor(pos.y / gridStep) * gridStep;
     for (let y = startY; y < height.value * scale + pos.y; y += gridStep) {
       layer.add(
         new Konva.Line({
           points: [pos.x, y, width.value * scale + pos.x, y],
-          stroke: '#ccc',
+          stroke: COLORS.GRID_STROKE,
           strokeWidth: strokeWidth,
         })
       );
@@ -50,17 +47,14 @@ export function useGrid(stageRef, width, height) {
     layer.batchDraw();
   };
 
-  // Split grid size by 2
   const splitGrid = () => {
-    gridSize.value /= 2; // e.g., 1cm -> 0.5cm
+    gridSize.value /= 2;
   };
 
-  // Enlarge grid size (invert split)
   const enlargeGrid = () => {
-    gridSize.value *= 2; // e.g., 0.5cm -> 1cm
+    gridSize.value *= 2;
   };
 
-  // Toggle grid visibility
   const toggleGrid = () => {
     isGridVisible.value = !isGridVisible.value;
   };

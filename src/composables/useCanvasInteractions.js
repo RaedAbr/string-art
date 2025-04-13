@@ -1,15 +1,18 @@
 import { useCanvasStore } from '@/stores/canvasStore';
+import { COLORS } from '@/constants/colors';
 
 export function useCanvasInteractions(stageRef, width, height, updateMinimap, drawGrid) {
   const store = useCanvasStore();
 
+  // Function to generate random color
   const getRandomColor = () => {
+    // Keeping random generation for now, fallback to constant
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
-    return color;
+    return color || COLORS.CIRCLE_FILL; // Fallback if needed
   };
 
   const addCircle = () => {
