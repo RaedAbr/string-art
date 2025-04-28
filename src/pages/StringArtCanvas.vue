@@ -3,8 +3,8 @@
     <!-- Main Canvas -->
     <div class="drawing-canvas">
       <v-stage ref="stage" :config="canvas.configKonva.value" @mousedown="interactions.handleMouseDown"
-        @mousemove="handleMouseMove" @mouseup="interactions.handleMouseUp" @click="drawing.handleCanvasClick">
-        <v-layer ref="gridLayer"></v-layer>
+        @mousemove="handleMouseMove" @mouseup="interactions.handleMouseUp" @click="handleCanvasClick">
+        <v-layer ref="gridLayer" id="gridLayer"></v-layer>
         <v-layer ref="layer">
           <!-- Circles -->
           <v-circle v-for="circle in store.circles" :key="circle.id" :config="{
@@ -14,7 +14,7 @@
             fill: circle.color,
             opacity: 0.8,
           }"></v-circle>
-          <!-- Points -->
+          <!-- Points (start/end and nails) -->
           <v-circle v-for="point in store.points" :key="point.id" :config="{
             x: point.x,
             y: point.y,
@@ -24,8 +24,8 @@
           <!-- Segments -->
           <v-line v-for="segment in store.segments" :key="segment.id" :config="{
             points: [segment.start.x, segment.start.y, segment.end.x, segment.end.y],
-            stroke: COLORS.SEGMENT_STROKE,
-            strokeWidth: 2,
+            stroke: store.selectedSegment?.id === segment.id ? COLORS.SELECTED_SEGMENT_STROKE : COLORS.SEGMENT_STROKE,
+            strokeWidth: store.selectedSegment?.id === segment.id ? 3 : 2,
           }"></v-line>
           <!-- Preview Segment -->
           <v-line v-if="previewSegment" :config="{
@@ -58,7 +58,6 @@
             height: minimap.minimapConfig.value.height,
             fill: '#f0f0f0',
           }" />
-          <v-rect :config="minimap.viewportRect.value" />
           <v-circle v-for="circle in store.circles" :key="circle.id" :config="{
             x: circle.x * minimap.minimapScale.value,
             y: circle.y * minimap.minimapScale.value,
@@ -81,8 +80,8 @@
               segment.end.x * minimap.minimapScale.value,
               segment.end.y * minimap.minimapScale.value,
             ],
-            stroke: COLORS.SEGMENT_STROKE,
-            strokeWidth: 2 * minimap.minimapScale.value,
+            stroke: store.selectedSegment?.id === segment.id ? COLORS.SELECTED_SEGMENT_STROKE : COLORS.SEGMENT_STROKE,
+            strokeWidth: store.selectedSegment?.id === segment.id ? 3 * minimap.minimapScale.value : 2 * minimap.minimapScale.value,
           }"></v-line>
           <!-- Minimap Preview Nails for Selected Segment -->
           <v-circle v-if="store.selectedSegment" v-for="(nail, index) in getSegmentNails(store.selectedSegment)"
@@ -93,14 +92,17 @@
               fill: COLORS.POINT_FILL,
               opacity: 0.5,
             }"></v-circle>
+          <!-- Viewport Rectangle -->
+          <v-rect :config="minimap.viewportRect.value" />
         </v-layer>
       </v-stage>
     </div>
 
     <!-- Control panel component -->
     <control-panel @add-circle="interactions.addCircle" @set-move-mode="store.setMoveMode"
-      @zoom-in="interactions.zoomIn" @zoom-out="interactions.zoomOut" @center-canvas="interactions.centerCanvas"
-      @split-grid="grid.splitGrid" @enlarge-grid="grid.enlargeGrid" @toggle-grid="grid.toggleGrid" />
+      @set-selection-mode="store.setSelectionMode" @zoom-in="interactions.zoomIn" @zoom-out="interactions.zoomOut"
+      @center-canvas="interactions.centerCanvas" @split-grid="grid.splitGrid" @enlarge-grid="grid.enlargeGrid"
+      @toggle-grid="grid.toggleGrid" />
   </div>
 </template>
 
@@ -148,20 +150,36 @@ const handleMouseMove = (e) => {
   interactions.handleMouseMove(e);
 };
 
-// Calculate nails (points) on a segment
+// Handle canvas click for drawing or selection
+const handleCanvasClick = (e) => {
+  if (store.isDrawingMode) {
+    drawing.handleCanvasClick(e);
+  } else if (store.isSelectionMode) {
+    interactions.handleCanvasClick(e);
+  }
+};
+
+// Calculate nails (points) on a segment for preview
 const getSegmentNails = (segment) => {
+  // Use stored nails if available, otherwise generate for preview
+  if (segment.nails && segment.nails.length > 0) {
+    return segment.nails;
+  }
   const count = segment.pointCount || 2;
   if (count < 2) return [segment.start, segment.end];
 
-  const nails = [];
+  let nails = [];
   const dx = (segment.end.x - segment.start.x) / (count - 1);
   const dy = (segment.end.y - segment.start.y) / (count - 1);
 
   for (let i = 0; i < count; i++) {
-    nails.push({
-      x: segment.start.x + i * dx,
-      y: segment.start.y + i * dy,
-    });
+    nails = [
+      ...nails,
+      {
+        x: segment.start.x + i * dx,
+        y: segment.start.y + i * dy,
+      },
+    ];
   }
 
   return nails;
@@ -169,7 +187,9 @@ const getSegmentNails = (segment) => {
 
 onMounted(() => {
   minimap.updateMinimap();
-  grid.drawGrid(gridLayer.value.getNode());
+  if (gridLayer.value) {
+    grid.drawGrid(gridLayer.value.getNode());
+  }
 });
 
 // Redraw grid on size, visibility, or position changes
@@ -183,8 +203,8 @@ watch(
   { deep: true }
 );
 
-// Update minimap and canvas on points/segments changes
-watch([store.points, store.segments], () => {
+// Update minimap and canvas on points/segments/selectedSegment changes
+watch([store.points, store.segments, () => store.selectedSegment], () => {
   if (minimapStage.value) {
     minimapStage.value.getStage().batchDraw();
   }

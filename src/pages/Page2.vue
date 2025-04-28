@@ -79,7 +79,7 @@ export default defineComponent({
       if (mode.value === 'draw' && currentLine.value) {
         const { x, y } = getMousePos(e);
         currentLine.value.end = { x, y };
-        lines.value.push(currentLine.value);
+        lines.value = [...lines.value, currentLine.value];
         currentLine.value = null;
         redraw();
       }
@@ -140,8 +140,8 @@ export default defineComponent({
       if (closestLine) {
         selectedLine.value = closestLine;
         const snappedPoint = projectPointOntoLine(x, y, closestLine);
-        closestLine.points.push(snappedPoint);
-        currentSequence.value.push(snappedPoint);
+        closestLine.points = [...closestLine.points, snappedPoint];
+        currentSequence.value = [...currentSequence.value, snappedPoint];
         redraw();
       }
     };
@@ -218,12 +218,15 @@ export default defineComponent({
       const dx = (line.end.x - line.start.x) / (numPoints - 1);
       const dy = (line.end.y - line.start.y) / (numPoints - 1);
 
-      const newPoints: Point[] = [];
+      let newPoints: Point[] = [];
       for (let i = 0; i < numPoints; i++) {
-        newPoints.push({
-          x: line.start.x + i * dx,
-          y: line.start.y + i * dy,
-        });
+        newPoints = [
+          ...newPoints,
+          {
+            x: line.start.x + i * dx,
+            y: line.start.y + i * dy,
+          },
+        ];
       }
 
       const oldToNew = new Map<Point, Point>();
@@ -246,7 +249,10 @@ export default defineComponent({
 
     const stopSequence = () => {
       if (currentSequence.value.length > 0) {
-        sequences.value.push([...currentSequence.value]);
+        sequences.value = [
+          ...sequences.value,
+          currentSequence.value.map((point) => ({ ...point })),
+        ];
         currentSequence.value = [];
         redraw();
       }
@@ -297,15 +303,19 @@ export default defineComponent({
   align-items: center;
   padding: 20px;
 }
+
 canvas {
   border: 1px solid #ccc;
 }
+
 .controls {
   margin-top: 20px;
 }
+
 button {
   margin: 0 10px;
 }
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

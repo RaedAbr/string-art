@@ -3,7 +3,8 @@
     <div ref="panel" class="command-panel" :style="{ top: `${top}px`, left: `${left}px` }">
       <h3 class="panel-title" @mousedown="startDragging">Controls</h3>
       <p class="mode-display mt-2">
-        Current Mode: {{ store.isDrawingMode ? 'Drawing' : store.isMoveMode ? 'Moving' : 'Default' }}
+        Current Mode: {{ store.isDrawingMode ? 'Drawing' : store.isMoveMode ? 'Moving' : store.isSelectionMode ?
+          'Selecting' : 'Default' }}
       </p>
       <Button @click="emit('add-circle')">Add Circle</Button>
       <Button :variant="store.isMoveMode ? 'secondary' : 'default'" @click="toggleMoveMode" class="mt-2">
@@ -11,6 +12,9 @@
       </Button>
       <Button :variant="store.isDrawingMode ? 'secondary' : 'default'" @click="toggleDrawingMode" class="mt-2">
         {{ store.isDrawingMode ? 'Disable Drawing' : 'Enable Drawing' }}
+      </Button>
+      <Button :variant="store.isSelectionMode ? 'secondary' : 'default'" @click="toggleSelectionMode" class="mt-2">
+        {{ store.isSelectionMode ? 'Disable Selection' : 'Enable Selection' }}
       </Button>
       <Button @click="emit('zoom-in')" class="mt-2">Zoom In</Button>
       <Button @click="emit('zoom-out')" class="mt-2">Zoom Out</Button>
@@ -59,6 +63,7 @@ const emit = defineEmits([
   'enlarge-grid',
   'toggle-grid',
   'set-drawing-mode',
+  'set-selection-mode',
 ]);
 
 const toggleMoveMode = () => {
@@ -71,9 +76,9 @@ const toggleDrawingMode = () => {
   emit('set-drawing-mode', store.isDrawingMode);
 };
 
-const toggleGrid = () => {
-  gridVisible.value = !gridVisible.value;
-  emit('toggle-grid');
+const toggleSelectionMode = () => {
+  store.setSelectionMode(!store.isSelectionMode);
+  emit('set-selection-mode', store.isSelectionMode);
 };
 
 onMounted(() => {

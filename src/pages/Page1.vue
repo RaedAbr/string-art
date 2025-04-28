@@ -20,13 +20,20 @@ const draw = () => {
   const centerX = canvas.value.width / 2;
   const centerY = canvas.value.height / 2;
   const radius = Math.min(centerX, centerY) - 20;
-  const points: { x: number, y: number }[] = [];
+  let points: { x: number, y: number }[] = [];
 
   for (let i = 0; i < numPoints.value; i++) {
     const angle = (i * 2 * Math.PI) / numPoints.value;
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
-    points.push({ x, y });
+    // points.push({ x, y });
+    points = [
+      ...points,
+      {
+        x: x + Math.random() * 10 - 5,
+        y: y + Math.random() * 10 - 5,
+      },
+    ];
   }
 
   ctx.fillStyle = "black";
@@ -54,7 +61,7 @@ const draw = () => {
 
     // Dessiner les points sur la ligne
     ctx.fillStyle = "blue";
-    for (let i = 0; i <= linePoints.value -1; i++) {
+    for (let i = 0; i <= linePoints.value - 1; i++) {
       const t = i / (linePoints.value - 1);
       const x = lineStart.value.x + t * (lineEnd.value.x - lineStart.value.x);
       const y = lineStart.value.y + t * (lineEnd.value.y - lineStart.value.y);
@@ -71,7 +78,7 @@ const handleClick = (event: MouseEvent) => {
   const rect = canvas.value.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
-  
+
   if (!lineStart.value) {
     lineStart.value = { x, y };
   } else {

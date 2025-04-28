@@ -3,19 +3,21 @@
     <h3 class="panel-title" @mousedown="startDragging">Segment Properties</h3>
     <div class="flex items-center space-x-2 mt-2">
       <Button @click="decrementPointCount">-</Button>
-      <input v-model.number="localPointCount" type="number" min="2" class="w-16 p-1 border rounded"
+      <input v-model.number="store.segmentPointCount" type="number" min="2" class="w-16 p-1 border rounded"
         @input="updatePointCount" />
       <Button @click="incrementPointCount">+</Button>
     </div>
     <div class="flex space-x-2 mt-2">
       <Button @click="confirmSegment" class="w-full">OK</Button>
       <Button @click="cancelSegment" class="w-full">Cancel</Button>
+      <Button v-if="store.isSelectionMode" @click="deleteSegment"
+        class="w-full bg-red-500 hover:bg-red-600">Delete</Button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useCanvasStore } from '@/stores/canvasStore';
 import { Button } from '@/components/ui/button';
 
@@ -24,33 +26,21 @@ const store = useCanvasStore();
 const top = ref(120);
 const left = ref();
 const segmentPanel = ref(null);
-const localPointCount = ref(2);
-
-watch(
-  () => store.selectedSegment,
-  (newSegment) => {
-    localPointCount.value = newSegment ? newSegment.pointCount || 2 : 2;
-  },
-  { immediate: true }
-);
 
 const decrementPointCount = () => {
-  if (localPointCount.value > 2) {
-    localPointCount.value -= 1;
-    store.updateSegmentPointCount(localPointCount.value);
+  if (store.segmentPointCount > 2) {
+    store.updateSegmentPointCount(store.segmentPointCount - 1);
   }
 };
 
 const incrementPointCount = () => {
-  localPointCount.value += 1;
-  store.updateSegmentPointCount(localPointCount.value);
+  store.updateSegmentPointCount(store.segmentPointCount + 1);
 };
 
 const updatePointCount = () => {
-  if (localPointCount.value >= 2) {
-    store.updateSegmentPointCount(localPointCount.value);
+  if (store.segmentPointCount >= 2) {
+    store.updateSegmentPointCount(store.segmentPointCount);
   } else {
-    localPointCount.value = 2;
     store.updateSegmentPointCount(2);
   }
 };
@@ -61,6 +51,10 @@ const confirmSegment = () => {
 
 const cancelSegment = () => {
   store.cancelSegment();
+};
+
+const deleteSegment = () => {
+  store.deleteSegment();
 };
 
 onMounted(() => {
@@ -124,5 +118,14 @@ const startDragging = (e) => {
 
 .mt-2 {
   margin-top: 0.5rem;
+}
+
+button.bg-red-500 {
+  background-color: #ef4444;
+  color: white;
+}
+
+button.bg-red-500:hover {
+  background-color: #dc2626;
 }
 </style>

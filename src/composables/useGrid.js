@@ -1,45 +1,45 @@
-import { ref } from 'vue';
-import { COLORS } from '@/constants/colors';
+import { ref, watch } from 'vue';
 
-export function useGrid(stageRef, width, height) {
-  const gridSize = ref(37.795275591);
+export function useGrid(stageRef, canvasWidth, canvasHeight) {
+  const gridSize = ref(50);
   const isGridVisible = ref(true);
 
   const drawGrid = (layer) => {
-    if (!layer || !stageRef.value) return;
-
-    layer.destroyChildren();
-    layer.clear();
-
-    if (!isGridVisible.value) {
-      layer.batchDraw();
+    if (!layer || !isGridVisible.value) {
+      layer?.destroyChildren();
+      layer?.batchDraw();
       return;
     }
 
-    const stage = stageRef.value.getStage();
-    const scale = stage.scaleX();
-    const pos = stage.position();
-    const gridStep = gridSize.value;
-    const strokeWidth = 1 / scale;
+    layer.destroyChildren();
 
-    const startX = Math.floor(pos.x / gridStep) * gridStep;
-    for (let x = startX; x < width.value * scale + pos.x; x += gridStep) {
+    const stage = stageRef.value?.getStage();
+    if (!stage) return;
+
+    const scale = stage.scaleX();
+    const scaledGridSize = gridSize.value * scale;
+
+    const width = canvasWidth.value;
+    const height = canvasHeight.value;
+
+    // Draw vertical lines
+    for (let x = 0; x <= width; x += gridSize.value) {
       layer.add(
         new Konva.Line({
-          points: [x, pos.y, x, height.value * scale + pos.y],
-          stroke: COLORS.GRID_STROKE,
-          strokeWidth: strokeWidth,
+          points: [x, 0, x, height],
+          stroke: '#ccc',
+          strokeWidth: 1 / scale,
         })
       );
     }
 
-    const startY = Math.floor(pos.y / gridStep) * gridStep;
-    for (let y = startY; y < height.value * scale + pos.y; y += gridStep) {
+    // Draw horizontal lines
+    for (let y = 0; y <= height; y += gridSize.value) {
       layer.add(
         new Konva.Line({
-          points: [pos.x, y, width.value * scale + pos.x, y],
-          stroke: COLORS.GRID_STROKE,
-          strokeWidth: strokeWidth,
+          points: [0, y, width, y],
+          stroke: '#ccc',
+          strokeWidth: 1 / scale,
         })
       );
     }
@@ -48,16 +48,31 @@ export function useGrid(stageRef, width, height) {
   };
 
   const splitGrid = () => {
-    gridSize.value /= 2;
+    gridSize.value = Math.max(10, gridSize.value / 2);
+    if (stageRef.value) {
+      drawGrid(stageRef.value.getStage().findOne('#gridLayer'));
+    }
   };
 
   const enlargeGrid = () => {
-    gridSize.value *= 2;
+    gridSize.value = Math.min(200, gridSize.value * 2);
+    if (stageRef.value) {
+      drawGrid(stageRef.value.getStage().findOne('#gridLayer'));
+    }
   };
 
   const toggleGrid = () => {
     isGridVisible.value = !isGridVisible.value;
+    if (stageRef.value) {
+      drawGrid(stageRef.value.getStage().findOne('#gridLayer'));
+    }
   };
+
+  watch([canvasWidth, canvasHeight, gridSize, isGridVisible], () => {
+    if (stageRef.value) {
+      drawGrid(stageRef.value.getStage().findOne('#gridLayer'));
+    }
+  });
 
   return {
     gridSize,

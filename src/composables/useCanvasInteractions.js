@@ -4,15 +4,13 @@ import { COLORS } from '@/constants/colors';
 export function useCanvasInteractions(stageRef, width, height, updateMinimap, drawGrid) {
   const store = useCanvasStore();
 
-  // Function to generate random color
   const getRandomColor = () => {
-    // Keeping random generation for now, fallback to constant
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
-    return color || COLORS.CIRCLE_FILL; // Fallback if needed
+    return color || COLORS.CIRCLE_FILL;
   };
 
   const addCircle = () => {
@@ -118,6 +116,39 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap, dr
     drawGrid();
   };
 
+  const handleCanvasClick = (e) => {
+    if (!store.isSelectionMode || !stageRef.value) return;
+
+    const stageInstance = stageRef.value.getStage();
+    const pointerPos = stageInstance.getPointerPosition();
+    const scale = stageInstance.scaleX();
+    const pos = stageInstance.position();
+    const clickX = (pointerPos.x - pos.x) / scale;
+    const clickY = (pointerPos.y - pos.y) / scale;
+
+    const pixelThreshold = 5 / scale;
+
+    for (const segment of store.segments) {
+      const { start, end } = segment;
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      if (length === 0) continue;
+
+      const t = ((clickX - start.x) * dx + (clickY - start.y) * dy) / (length * length);
+      if (t < 0 || t > 1) continue;
+
+      const projectionX = start.x + t * dx;
+      const projectionY = start.y + t * dy;
+      const distance = Math.sqrt((clickX - projectionX) ** 2 + (clickY - projectionY) ** 2);
+
+      if (distance <= pixelThreshold) {
+        store.setSelectedSegment(segment);
+        return;
+      }
+    }
+  };
+
   return {
     addCircle,
     zoomIn,
@@ -126,5 +157,6 @@ export function useCanvasInteractions(stageRef, width, height, updateMinimap, dr
     handleMouseMove,
     handleMouseUp,
     centerCanvas,
+    handleCanvasClick,
   };
 }
